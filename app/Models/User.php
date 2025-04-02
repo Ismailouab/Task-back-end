@@ -2,47 +2,62 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens; // Add this line
+use App\Notifications\CustomResetPassword;
 
-class User extends Authenticatable
+
+class User extends Authenticatable implements MustVerifyEmail
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+
     protected $fillable = [
         'name',
         'email',
         'password',
+        'timezone',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'last_active_at' => 'datetime',
+        'has_personal_workspace' => 'boolean',
+    ];
+
+    // Teams this user owns
+    public function ownedTeams()
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return $this->hasMany(Team::class, 'owner_id');
     }
+
+    // Teams this user belongs to
+    public function teams()
+    {
+        return $this->belongsToMany(Team::class)
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    // Update last active time
+    public function updateLastActive()
+    {
+        $this->last_active_at = now();
+        $this->save();
+    }
+
+
+// In your User model
+public function sendPasswordResetNotification($token)
+{
+    $this->notify(new CustomResetPassword($token));
+}
 }
