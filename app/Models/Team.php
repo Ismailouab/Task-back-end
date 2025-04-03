@@ -67,4 +67,9 @@ class Team extends Model
             $team->slug = \Str::slug($team->name);
         });
     }
+    public function updateMemberRole($userId, $newRole)
+{
+    return $this->members()->updateExistingPivot($userId, ['role' => $newRole]);
+}
+
 }
