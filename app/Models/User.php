@@ -53,11 +53,15 @@ class User extends Authenticatable implements MustVerifyEmail
         $this->last_active_at = now();
         $this->save();
     }
+    // Project owner relationship
+    public function ownedProjects()
+    {
+        return $this->hasMany(Project::class, 'owner_id');
+    }
 
-
-// In your User model
-public function sendPasswordResetNotification($token)
-{
-    $this->notify(new CustomResetPassword($token));
-}
+    // In your User model
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new CustomResetPassword($token));
+    }
 }
