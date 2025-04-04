@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Notifications\Notifiable;
+use App\Notifications\CustomResetPassword;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Laravel\Sanctum\HasApiTokens; // Add this line
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens; // Add this line
-use App\Notifications\CustomResetPassword;
 
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -19,6 +20,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'profile_picture',
         'timezone',
     ];
 
@@ -59,9 +61,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Project::class, 'owner_id');
     }
 
-    // In your User model
-    public function sendPasswordResetNotification($token)
-    {
-        $this->notify(new CustomResetPassword($token));
-    }
+   
+    
 }

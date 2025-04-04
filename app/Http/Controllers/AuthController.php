@@ -10,6 +10,7 @@ use Illuminate\Validation\Rules;
 use App\Models\PasswordResetCode;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Auth\Events\PasswordReset;
 
@@ -99,19 +100,50 @@ class AuthController extends Controller
     public function updateProfile(Request $request)
     {
         $user = $request->user();
-
+        
         $validated = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|max:255|unique:users,email,'.$user->id,
-            'timezone' => 'sometimes|timezone',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,'.$user->id,
+            'timezone' => 'required|timezone',
+            'profile_picture' => 'nullable|string', // Only update if provided
         ]);
+    
+        // Only update fields that were provided
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+        $user->timezone = $validated['timezone'];
+        
+        if ($request->has('profile_picture')) {
+            // Handle picture update
+            $user->profile_picture = $this->handleBase64Image($request->profile_picture, $user->profile_picture);
+        }
+        
+        $user->save();
+        
+        return response()->json(['user' => $user]);
+    }
+    private function handleBase64Image($base64Image, $oldImagePath = null)
+    {
+        if (!$base64Image) {
+            return null;
+        }
 
-        $user->update($validated);
+        // Decode the base64 image
+        $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64Image));
 
-        return response()->json([
-            'message' => 'Profile updated successfully',
-            'user' => $user
-        ]);
+        // Generate a unique filename
+        $extension = 'png'; 
+        $filename = 'profile_pictures/' . uniqid() . '.' . $extension;
+
+        // Save the image to storage
+        Storage::disk('public')->put($filename, $imageData);
+
+        // Delete the old image if it exists
+        if ($oldImagePath && Storage::disk('public')->exists($oldImagePath)) {
+            Storage::disk('public')->delete($oldImagePath);
+        }
+
+        return $filename;
     }
 
     /**
