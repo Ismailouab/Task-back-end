@@ -29,10 +29,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/teams', [TeamController::class, 'index']);
     Route::post('/teams', [TeamController::class, 'store']);
     Route::get('/teams/{team}', [TeamController::class, 'show']);
-    Route::put('/teams/{team}', [TeamController::class, 'update']);
+    Route::put('/teams/{team}', action: [TeamController::class, 'update']);
     Route::delete('/teams/{team}', [TeamController::class, 'destroy']);
     
     // Team member routes
+    Route::get('/teams/{team}/non-members', [TeamController::class, 'getNonMembers']);
     Route::post('/teams/{team}/members', [TeamController::class, 'addMember']);
     Route::put('/teams/{team}/members/{user}/role', [TeamController::class, 'updateMemberRole']);
     Route::delete('/teams/{team}/members/{user}', [TeamController::class, 'removeMember']);

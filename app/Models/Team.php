@@ -22,6 +22,7 @@ class Team extends Model
         'is_public' => 'boolean',
     ];
 
+    
     // Team owner
     public function owner()
     {
