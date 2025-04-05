@@ -29,11 +29,25 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/teams', [TeamController::class, 'index']);
     Route::post('/teams', [TeamController::class, 'store']);
     Route::get('/teams/{team}', [TeamController::class, 'show']);
-    Route::put('/teams/{team}', [TeamController::class, 'update']);
+    Route::put('/teams/{team}', action: [TeamController::class, 'update']);
     Route::delete('/teams/{team}', [TeamController::class, 'destroy']);
     
     // Team member routes
+    Route::get('/teams/{team}/non-members', [TeamController::class, 'getNonMembers']);
     Route::post('/teams/{team}/members', [TeamController::class, 'addMember']);
     Route::put('/teams/{team}/members/{user}/role', [TeamController::class, 'updateMemberRole']);
     Route::delete('/teams/{team}/members/{user}', [TeamController::class, 'removeMember']);
+});
+Route::middleware(['auth:sanctum'])->group(function () {
+    // Project routes
+    Route::get('teams/{team}/projects', [ProjectController::class, 'index']);
+    Route::post('teams/{team}/projects', [ProjectController::class, 'store']);
+    Route::get('teams/{team}/projects/{project}', [ProjectController::class, 'show']);
+    Route::put('teams/{team}/projects/{project}', [ProjectController::class, 'update']);
+    Route::delete('teams/{team}/projects/{project}', [ProjectController::class, 'destroy']);
+    // Task routes
+    Route::get('teams/{team}/projects/{project}/tasks', [TaskController::class, 'index']);
+    Route::post('teams/{team}/projects/{project}/tasks', [TaskController::class, 'store']);
+    Route::put('teams/{team}/projects/{project}/tasks/{task}', [TaskController::class, 'update']);
+    Route::delete('teams/{team}/projects/{project}/tasks/{task}', [TaskController::class, 'destroy']);
 });

@@ -48,7 +48,12 @@ class User extends Authenticatable implements MustVerifyEmail
             ->withPivot('role')
             ->withTimestamps();
     }
-
+     // Tasks assigned to the user
+     public function assignedTasks()
+     {
+         return $this->hasMany(Task::class, 'assigned_to');
+     }
+ 
     // Update last active time
     public function updateLastActive()
     {

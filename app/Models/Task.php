@@ -43,5 +43,10 @@ class Task extends Model
     {
         return $this->status === 'completed';
     }
+    // Check if in progress
+     public function isInProgress()
+     {
+         return $this->status === 'in progress';
+     }
 }
 

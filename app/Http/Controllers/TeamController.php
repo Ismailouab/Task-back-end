@@ -13,16 +13,15 @@ class TeamController extends Controller
 {
     // Get all teams for the current user
     public function index()
-    {
-        $teams = Auth::user()->teams;
-        $ownedTeams = Auth::user()->ownedTeams;
+{
+    $user = Auth::user();
+    $allTeams = $user->teams->merge($user->ownedTeams)->unique('id');
 
-        return response()->json([
-            'teams' => $teams,
-            'owned_teams' => $ownedTeams
-        ]);
-    }
-
+    return response()->json([
+        'teams' => $allTeams,
+        'owned_teams' => $user->ownedTeams
+    ]);
+}
     // Create a new team
     public function store(Request $request)
     {
@@ -103,6 +102,34 @@ class TeamController extends Controller
             'message' => 'Team deleted successfully'
         ]);
     }
+    // In your TeamController or a new controller
+public function getNonMembers(Team $team)
+{
+    // Check if user can view potential members (owner or admin)
+    $isOwner = $team->owner_id === Auth::id();
+    $isAdmin = $team->members()
+        ->where('user_id', Auth::id())
+        ->where('role', 'admin')
+        ->exists();
+
+    if (!$isOwner && !$isAdmin) {
+        return response()->json(['message' => 'Unauthorized'], 403);
+    }
+
+    $currentMemberIds = $team->members()->pluck('users.id');
+    
+    $users = User::whereNotIn('id', $currentMemberIds)
+        ->when(request('search'), function($query, $search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        })
+        ->select('id', 'name', 'email')
+        ->paginate(10);
+
+    return response()->json($users);
+}
 
     // Add member to team
     public function addMember(Request $request, Team $team)

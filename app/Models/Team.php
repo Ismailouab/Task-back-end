@@ -22,6 +22,7 @@ class Team extends Model
         'is_public' => 'boolean',
     ];
 
+    
     // Team owner
     public function owner()
     {
@@ -34,6 +35,11 @@ class Team extends Model
         return $this->belongsToMany(User::class)
             ->withPivot('role')
             ->withTimestamps();
+    }
+    // Projects under the team
+    public function projects()
+    {
+        return $this->hasMany(Project::class);
     }
 
     // Add a member to the team
